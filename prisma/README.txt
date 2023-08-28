@@ -62,14 +62,11 @@ where the [DB PASSWORD] should be replaced by the database password
 Run
 $ npx prisma migrate dev --name init
 This will create a 'migrations' subfolder in folder 'prisma'
+It will also create the DB tables:
 
-1) For SQLITE, it will also create the DB tables in the local db file.
+1) For SQLITE, in the local db file.
 
-2) For PostgraSQL, we need to create the DB tables manually as follows:
-- Go to the 'prisma/migrations/'<14-digit timestamp>_init' (e.g. '20230825212842_init').
-- Open file 'migration.sql' and copy its contents.
-- Go to the supabase website, select the database and on the left sidebar, click on 'SQL Editor'.
-- Paste the script over there and run it.
+2) For PostgraSQL, go to supabase website and see under 'Database'
 
 -----------------
    S T E P   6  
