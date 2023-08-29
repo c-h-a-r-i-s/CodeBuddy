@@ -1,6 +1,6 @@
 // Library imports
-import prismaInstance from '@/app/lib/prisma'
-import * as bcrypt from 'bcrypt' // Install: 'npm i bcrypt' followed by 'npm i --save-dev @types/bcrypt'
+import prismaInstance from '@/app/lib/prisma';
+import * as bcrypt from 'bcrypt'; // Install: 'npm i bcrypt' followed by 'npm i --save-dev @types/bcrypt'
 
 type RequestBody = {
     username: string;

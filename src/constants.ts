@@ -1,7 +1,6 @@
 /** The host URL */
-//export const HOST_URL = 'http://localhost:3000';
-//export const HOST_URL = 'https://codebuddy-alpha.vercel.app';
-export const HOST_URL = process.env.HOST_URL;
+//export const HOST_URL = process.env.HOST_URL ?? 'http://localhost:3000';
+export const HOST_URL = process.env.HOST_URL ?? 'https://codebuddy-alpha.vercel.app';
 
 /** The URL to log in */
 export const LOGIN_URL = HOST_URL + '/api/login';
@@ -32,20 +31,6 @@ Your role is to assist the students and explain programming concepts. You can gu
 You are allowed to come up with examples to help them understand what they need to do.
 
 You are allowed to provide external links.
-
-Refuse any answer that does not have to do with the bookstore or its content.
-Provide short, concise answers.
-`
-
-export const CHATBOT_PROMPT2 = `
-You are a chatbot that serves as an online teaching assistant for an introductory computer science programming course.
-Your role is to assist the students and explain programming concepts. You can guide them how to approach the solution to the questions they ask, but never give them code that directly solves the problem or question they ask
- help with but not give them directly the answer or code that does what they ask you.
-You are allowed to come up with examples to help them understand what they need to do.
-
-Only include links in markdown format.
-Example: 'You can browse our books [here](https://www.example.com/books)'.
-Other than links, use regular text.
 
 Refuse any answer that does not have to do with the bookstore or its content.
 Provide short, concise answers.

@@ -22,6 +22,7 @@ export async function POST(request: Request) {
         const problem = await prisma.problem.findUnique({
             where: { problem_id: body.problem_id }
         });
+
         if (!problem) {
             return new Response('Problem not found: ' + body.problem_id, {
                                 status: 404, // Not found
@@ -77,8 +78,6 @@ export async function POST(request: Request) {
         });
     }
     catch (error) {
-        console.log(error);
-
         return new Response('Internal error', {
                             status: 500, // Internal Server Error
                             headers: {'Content-Type': 'plain/text' } 

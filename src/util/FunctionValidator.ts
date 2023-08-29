@@ -38,7 +38,7 @@ export async function validateFunction(workerRef: MutableRefObject<Worker | null
         workerRef.current.onerror = (error) => {
             workerRef.current?.terminate();
             workerFinished = true;
-
+            
             let errorMessage = error.message;
             const startIndex = errorMessage.indexOf(VALIDATION_ERROR_PREFIX);
             if (startIndex !== -1) {

@@ -18,8 +18,6 @@ type SettingsModalProps = {
 const SettingsModal:React.FC<SettingsModalProps> = ({settings, setSettings}) => {
     /** Remembers of the user selection for the font size */ 
     const [fontSize, setFontSize] = useLocalStorage(FONT_SIZE.key, FONT_SIZE.default);
-    console.log("SettingsModal: fontSize -->" + fontSize);
-console.log("SettingsModal: settings.fontSize.value -->" + settings.fontSize);
 
 
     /** Handles the font selection dropdown menu when the user clicks on it */

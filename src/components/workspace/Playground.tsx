@@ -129,10 +129,11 @@ const Playground:React.FC<PlaygroundProps> = ({user,
         try {
             const response = await axios.request(options);
             await checkStatus(response.data.token);
-            setProcessing(false);
         }
         catch (error) {
             console.error(error);
+        }
+        finally {
             setProcessing(false);
         }
     };
@@ -335,7 +336,7 @@ const Playground:React.FC<PlaygroundProps> = ({user,
         </Split>
         <EditorFooter outputInfo={outputInfo}
                       executeCode={executeCode}
-                      handleSaveSubmit={saveSubmitCode} />
+                      saveSubmitCode={saveSubmitCode} />
       </div>
     );
 }

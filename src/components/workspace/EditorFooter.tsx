@@ -10,15 +10,23 @@ import { OutputInfo } from "@/types";
 type EditorFooterProps = {
     outputInfo: OutputInfo | null;
     executeCode(userInput: string): void;
-    handleSaveSubmit(submit: boolean): void;
+    saveSubmitCode(submit: boolean): void;
 };
 
 const EditorFooter:React.FC<EditorFooterProps> = ({ outputInfo,
                                                     executeCode,
-                                                    handleSaveSubmit }) => {
+                                                    saveSubmitCode }) => {
     // Keeps track of the console visibility state (i.e., visible or hidden)
     const [consoleVisible, setConsoleVisible] = useState(false);
-    
+    /** The label for the button to execute the code */
+    const [runButtonLabel, setRunButtonLabel] = useState('Run');
+    /** The label for the button to save the code */
+    const [saveButtonLabel, setSaveButtonLabel] = useState('Save');
+    /** The label for the button to validate the code */
+    const [submitButtonLabel, setSubmitButtonLabel] = useState('Submit');
+    /** {@code true} to disable the buttons or {@code false} to enable them */
+    const [disabled, setDisabled] = useState(false);
+
     /** Returns the text in the output console */
     function getConsoleOutputText() {
         const textarea = document.getElementById('consoleOutput') as HTMLTextAreaElement;
@@ -28,10 +36,49 @@ const EditorFooter:React.FC<EditorFooterProps> = ({ outputInfo,
     /**
      * Captures the user input and submits the code for compilation and execution
      */
-    const handleCodeExecution = () => {
+    const handleCodeExecution = async () => {
+        // Do not accept another run till we hear from the server
+        if (disabled) {
+            return;
+        }
+
+        setDisabled(true);
+        setRunButtonLabel("Running...");
         const textarea = document.getElementById('consoleInput') as HTMLTextAreaElement;
         const userInput = textarea?.value ?? '';
-        executeCode(userInput);
+
+        try {
+            // The await is needed to show 'Running' as
+            // the button label while the code executs
+            await executeCode(userInput);
+        }
+        finally {
+            // Now allow another run
+            setRunButtonLabel("Run");
+            setDisabled(false);
+          }
+    }
+
+
+    const handleSaveSubmit = async (submit: boolean) => {
+        // Do not accept another submission till we hear from the server
+        if (disabled) {
+            return;
+        }
+
+        setDisabled(true);
+        submit ? setSubmitButtonLabel('Submitting...') : setSaveButtonLabel('Saving...');
+
+        try {
+            // The await is needed to show 'Submiting...'/'Saving...'
+            // as the button label while the code executs
+            await saveSubmitCode(submit);
+        }
+        finally {
+            // Now can accept another submission
+            submit ? setSubmitButtonLabel('Submit') : setSaveButtonLabel('Save');
+            setDisabled(false);
+        }
     }
 
     /**
@@ -87,18 +134,18 @@ const EditorFooter:React.FC<EditorFooterProps> = ({ outputInfo,
                  <button className="px-3 py-1.5 text-sm font-medium items-center whitespace-nowrap transition-all focus:outline-none inline-flex bg-dark-fill-3  hover:bg-dark-fill-2 text-dark-label-2 rounded-lg"
                          onClick={handleCodeExecution}
                  >
-                   Run
+                   {runButtonLabel}
                  </button>
               }
               <button className="px-3 py-1.5 text-sm font-medium items-center whitespace-nowrap transition-all focus:outline-none inline-flex bg-dark-fill-3  hover:bg-dark-fill-2 text-dark-label-2 rounded-lg"
                       onClick={() => handleSaveSubmit(false)}
               >
-                Save
+                {saveButtonLabel}
               </button>
               <button className="px-3 py-1.5 font-medium items-center transition-all focus:outline-none inline-flex text-sm text-white bg-dark-green-s hover:bg-green-3 rounded-lg"
                       onClick={() => handleSaveSubmit(true)}
               >
-                Submit
+                {submitButtonLabel}
               </button>
             </div>
           </div>

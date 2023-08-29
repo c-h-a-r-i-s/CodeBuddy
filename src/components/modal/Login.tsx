@@ -20,10 +20,10 @@ const Login:React.FC<LoginProps> = ({showModal}) => {
     /** Keeps track of any user authentication errors */
     const [authError, setAuthError] = useState<string | null>(null);
     /**
-     * {@code true} if we are waiting for a server response to the login request
-     * or {@code false} otherwise
+     * {@code true} if we are waiting for a server response or
+     * {@code false} otherwise
      */
-    const [loading, setLoading] = useState<boolean>(false);
+    const [waiting, setWaiting] = useState<boolean>(false);
 
     /**
      * Registers the user to our database.
@@ -38,8 +38,8 @@ const Login:React.FC<LoginProps> = ({showModal}) => {
         else { 
             // Wipe out any previous validation error
             setValidationError(null);
-            // Do not accept another login request till this is resolved
-            setLoading(true);
+            // Do not accept another login request till we hear from the server
+            setWaiting(true);
             const { email, password } = Object.fromEntries(data);
 
             try {
@@ -54,7 +54,7 @@ const Login:React.FC<LoginProps> = ({showModal}) => {
                 setAuthError(error.message);
             }
             finally {
-              setLoading(false);
+                setWaiting(false);
             }
         }
     }
@@ -99,7 +99,7 @@ const Login:React.FC<LoginProps> = ({showModal}) => {
                 className="w-full text-white focus:ring-blue-300 font-medium rounded-lg
                            text-sm px-5 py-2.5 text-center bg-cardinal-red hover:bg-cardinal-red-s"
         >
-          {loading ? 'Logging in...' : 'Login'}
+          {waiting ? 'Logging in...' : 'Login'}
         </button>
         <button className="flex w-full justify-end" onClick={() => showModal('forgotPassword')}>
           <a href="#" className="text-sm block text-cardinal-red hover:underline w-full text-right">
