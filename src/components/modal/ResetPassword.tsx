@@ -6,7 +6,7 @@ import { sendEmail } from "@/util/EmailUtil";
 import { EmailType } from "@/types";
 
 type ResetPasswordProps = {
-  showModal: (type: 'login' | 'signup' | 'forgotPassword') => void
+    showModal: (type: 'login' | 'signup' | 'forgotPassword') => void
 };
 
 const ResetPassword:React.FC<ResetPasswordProps> = ({showModal}) => {
@@ -38,7 +38,7 @@ const ResetPassword:React.FC<ResetPasswordProps> = ({showModal}) => {
                 showModal('login');
             }
             catch (error: any) {
-                showError('Sending email to reset passowrd failed: ' + error.message);
+                showError('Either ' + email + ' does not exist or an error occurred. Try again.');
             }
             finally {
                 setWaiting(false);
