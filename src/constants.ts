@@ -38,3 +38,6 @@ Provide short, concise answers.
 
 /** The ChatGPT model */
 export const CHAT_GPT_MODEL = 'gpt-3.5-turbo';
+
+/** Token expiry in hours from the moment when the token is created */
+export const TOKEN_EXPIRY_IN_HOURS = 24;

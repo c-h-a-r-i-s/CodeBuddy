@@ -46,9 +46,9 @@ const AuthPage: React.FC<AuthPageProps> = () => {
         if (urlParams.has('error')) {
             let error = urlParams.get('error');
             if (error === 'CredentialsSignin') {
-                error = 'Invalid credentials';
-              }
-              showError(error!);
+                error = 'Invalid credentials or unverified user';
+            }
+            showError(error!);
         }
     }, []);
 
@@ -60,7 +60,7 @@ const AuthPage: React.FC<AuthPageProps> = () => {
             <Image src="/images/banner.png" alt="Banner image" height={700} width={700} />
           </div>
           <div>
-            { /* Show the child-component  (e.g., Login, etc.) */ }
+            { /* Show the child-component (e.g., Login, etc.) */ }
             { !authenticated && authModalState.isOpen && <AuthModal authModalState={authModalState} updateAuthModalStateChange={updateAuthModalStateChange} /> }
           </div>
         </div>

@@ -200,3 +200,11 @@ export type DBAttemptedProblem = DBProblem & {
     code: string;
     correct: boolean;
 }
+
+/**
+ * The email types
+ */
+export enum EmailType {
+    ACCOUNT_VERIFICATION, // Account verification
+    RESET_PASSWORD        // Reset password
+}

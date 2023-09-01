@@ -26,7 +26,7 @@ const Login:React.FC<LoginProps> = ({showModal}) => {
     const [waiting, setWaiting] = useState<boolean>(false);
 
     /**
-     * Registers the user to our database.
+     * Authenticates the user against our database.
      */
     async function submitForm(data: FormData) {
         const validationError = await assertCredentials(data);
@@ -34,7 +34,7 @@ const Login:React.FC<LoginProps> = ({showModal}) => {
         if (validationError) {
             // Validation error
             setValidationError(validationError);
-          }
+        }
         else { 
             // Wipe out any previous validation error
             setValidationError(null);
@@ -94,7 +94,7 @@ const Login:React.FC<LoginProps> = ({showModal}) => {
             <ErrorMessage message={validationError.password._errors.join(',')} />
           }
         </div>
-        <button // -----   S I G N   U P   B U T T O N   ----- //
+        <button // -----   L O G I N   B U T T O N   ----- //
                 type="submit"
                 className="w-full text-white focus:ring-blue-300 font-medium rounded-lg
                            text-sm px-5 py-2.5 text-center bg-cardinal-red hover:bg-cardinal-red-s"

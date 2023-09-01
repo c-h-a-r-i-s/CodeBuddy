@@ -58,7 +58,11 @@ export default async function Home() {
         </>
       ) : (
         <div className="flex items-center justify-center h-[calc(100vh-5rem)] pointer-events-none select-none">
-          <Image src="/images/banner.png" alt="Banner image" height={700} width={700} />
+          <Image src="/images/banner.png"
+                 alt="Banner image"
+                 height={700}
+                 width={700}
+          />
         </div>
       )}
     </main>

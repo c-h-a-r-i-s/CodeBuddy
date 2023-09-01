@@ -4,7 +4,7 @@ import { getServerSession } from 'next-auth/next';
 import {ZodFormattedError} from 'zod';
 // Custom imports
 import * as dbUtils from "@/util/DBUtils";
-import { AuthenticateUserSchema, CreateProblemSchema, CreateUserSchema } from "@/app/lib/zod_schemas";
+import { AuthenticateUserSchema, CreateProblemSchema, CreateUserSchema, NewPasswordSchema } from "@/app/lib/zod_schemas";
 import { DBUser } from "@/types";
 
 
@@ -35,15 +35,15 @@ export async function getSessionUser(includeAttemptedProblems : boolean): Promis
 }
 
 /**
- * Extracts the information form the passed form data to create a
+ * Extracts the information from the passed form data to create a
  * new user in the database.
  * 
  * @param userInfo The form data that contains the information
  *                 about the user
  * 
- * @return an formatted error message if there is a validaton error,
+ * @return a formatted error message if there is a validaton error,
  *         or a string if this is an error message from the database
- *         operation or {@code null} if the task is completed successfully.
+ *         operation or {@code null} if the task completed successfully.
  */
 export async function createUserInDB(userInfo: FormData) :
              Promise<ZodFormattedError<{email: string;
@@ -70,7 +70,12 @@ export async function createUserInDB(userInfo: FormData) :
  * @param correct {@code true} if the user solved the problem correctly
  *                or {@code false} otherwise
  *
- * @returns the authenticated user or {@code null} if no user is logged in
+ * @returns an array where the first element is {@code true}
+ *          in case the operation was successful or
+ *          {@code false} otherwise and the second element
+ *          is {@code null} in case the operation was successful
+ *          and a string with error message in case it was
+ *          unsuccessful. 
  */
 export async function addAttemptedProblem(user: DBUser,
                                           problemID: string,
@@ -106,15 +111,15 @@ export async function addAttemptedProblem(user: DBUser,
 }
 
 /**
- * Extracts the information form the passed form data to create a
+ * Extracts the information from the passed form data to create a
  * new problem in the database.
  * 
  * @param problemInfo The form data that contains the information
  *                    about the problem
  * 
- * @return an formatted error message if there is a validaton error,
+ * @return a formatted error message if there is a validaton error,
  *         or a string if this is an error message from the database
- *         operation or {@code null} if the task is completed successfully.
+ *         operation or {@code null} if the task completed successfully.
  */
 export async function createProblemInDB(problemInfo: FormData) :
              Promise<ZodFormattedError<{ problem_id: string;
@@ -144,7 +149,7 @@ export async function createProblemInDB(problemInfo: FormData) :
 }
 
 /**
- * Extracts the information form the passed form data to assert
+ * Extracts the information from the passed form data to assert
  * the user credentials.
  * 
  * @param credentials The form data that contains the user credentials
@@ -165,7 +170,29 @@ export async function assertCredentials(credentials: FormData) :
 }
 
 /**
- * Extracts the information form the passed form data to validate
+ * Extracts the information from the passed form data to assert
+ * the new password and the password confirmation.
+ * 
+ * @param newPassword The new passowrd
+ * @param passwordConfirm The passowrd confirmation
+ * 
+ * @returns a ZodFormattedError in case of invalid passwords or
+ *          {@code null} if the passwords match and are valid.
+ */
+export async function assertNewPasswordForm(passwords: FormData) :
+             Promise<ZodFormattedError<{newPassword: string;
+                                        passwordConfirm: string}, string> | null> {
+    const { newPassword, passwordConfirm } = Object.fromEntries(passwords);
+    const zodResult = NewPasswordSchema.safeParse({newPassword, passwordConfirm});
+    if (!zodResult.success) {
+        return zodResult.error.format();
+    }
+
+    return null;
+}
+
+/**
+ * Extracts the information from the passed form data to validate
  * the user credentials (i.e., authenticate the user).
  * 
  * @param credentials The form data that contains the user credentials
@@ -187,6 +214,109 @@ export async function validateCredentials(credentials: FormData) :
     const dbUser = await dbUtils.authenticateUser(email as string,
                                                   password as string);
     return [null, dbUser];
+}
+
+/**
+ * Adds a verification token for the specified user.
+ * 
+ * @param email The email for the user to add the verification token
+ * @param token The verification token
+ * @param expiry The time when the token will expire
+ * 
+ * @return {@code null} if the task completed successfully or an error message
+ *         if there was an error.
+ */
+export async function addVerificationToken(email: string,
+                                           token: string,
+                                           expiry: Date) : Promise<string | null> {
+    const [, error] = await dbUtils.updateUser(email,      // currEmail
+                                               undefined,  // newEmail
+                                               undefined,  // newName
+                                               undefined,  // newPassword
+                                               undefined,  // isVerified
+                                               undefined,  // forgotPasswordToken
+                                               undefined,  // forgotPasswordTokenExpiry
+                                               token,      // verifyToken
+                                               expiry      // verifyToken
+    );
+    
+    return error;
+}
+
+/**
+ * Adds a forgot password token for the specified user.
+ * 
+ * @param email The email for the user to add the forgot password token
+ * @param token The password reset token
+ * @param expiry The time when the token will expire
+ * 
+ * @return {@code null} if the task completed successfully or an error message
+ *         if there was an error.
+ */
+export async function addForgotPasswordToken(email: string,
+                                             token: string,
+                                             expiry: Date) : Promise<string | null> {
+    const [, error] = await dbUtils.updateUser(email,      // currEmail
+                                               undefined,  // newEmail
+                                               undefined,  // newName
+                                               undefined,  // newPassword
+                                               undefined,  // isVerified
+                                               token,      // forgotPasswordToken
+                                               expiry,     // forgotPasswordTokenExpiry
+                                               undefined,  // verifyToken
+                                               undefined   // verifyToken
+    );
+    
+    return error;
+}
+
+/**
+ * Validates the given token.
+ * A token is valid if it exists in the database and has not expired.
+ * 
+ * @param token The token to validate
+ * 
+ * @return {@code true} if the token is found and has not expired or
+ *         {@code false} otherwise
+ */
+export async function validateVerificationToken(token: string): Promise<boolean> {
+    try {
+        const [success, error] = await dbUtils.verifyUser(token);
+        if (error) {
+            console.log(error);
+        }
+        return success;
+    }
+    catch (error) {
+        console.log(error);
+        return false;
+    }
+}
+
+/**
+ * Validates the given token and if the token is valid it sets the
+ * new password.
+ * A token is valid if it exists in the database and has not expired.
+ * 
+ * @param token The token to validate
+ * @param newPassword The new password
+ * 
+ * @return {@code true} if the token is found and has not expired or
+ *         {@code false} otherwise
+ */
+export async function resetPassword(token: string,
+                                    newPassword: string ): Promise<boolean> {
+    try {
+        const [success, error] = await dbUtils.resetPassword(token, newPassword);
+        if (error) {
+            console.log(error);
+        }
+        return success;
+    }
+    catch (error) {
+        console.log(error);
+        return false;
+    }
 }
 
 /**

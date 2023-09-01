@@ -1,7 +1,7 @@
 "use server";
 // Library imports
-import prisma from '@/app/lib/prisma'
-import * as bcrypt from 'bcrypt' // Install: 'npm i bcrypt' followed by 'npm i --save-dev @types/bcrypt'
+import prisma from '@/app/lib/prisma';
+import * as bcrypt from 'bcrypt'; // Install: 'npm i bcrypt' followed by 'npm i --save-dev @types/bcrypt'
 // Custom imports
 import { DBUser, DBProblem, DBAttemptedProblem } from "@/types";
 import { AttemptedProblem } from "@prisma/client"; // The Problem model is in file schema.prisma
@@ -17,29 +17,34 @@ import { AttemptedProblem } from "@prisma/client"; // The Problem model is in fi
  * @returns the registered users
  */
 export async function getUsers(includeAttemptedProblems: boolean): Promise<DBUser[]> {
-    const users = await prisma.user.findMany({
-        include: { attemptedProblems: includeAttemptedProblems }
-    });
-    const dbUsers: DBUser[] = await Promise.all(
-        users.map(async (user) => {
-            return {
-                email: user.email,
-                name: user.name,
-                isVerified: user.isVerified,
-                forgotPasswordToken: user.forgotPasswordToken ?? undefined,
-                forgotPasswordTokenExpiry: user.forgotPasswordTokenExpiry ?? undefined,
-                verifyToken: user.verifyToken ?? undefined,
-                verifyTokenExpiry: user.verifyTokenExpiry ?? undefined,
-                attemptedProblems: includeAttemptedProblems? 
-                                   await Promise.all(
-                                       user.attemptedProblems.map(async (attemptedProblem) => {
-                                           return await mapAttemptedProblemToDBAttemtpedProblem(attemptedProblem);
-                                        })
-                                    ) :[]
-            };
-        })
-    )
-    return dbUsers;
+    try {
+        const users = await prisma.user.findMany({
+            include: { attemptedProblems: includeAttemptedProblems }
+        });
+        const dbUsers: DBUser[] = await Promise.all(
+            users.map(async (user) => {
+                return {
+                    email: user.email,
+                    name: user.name,
+                    isVerified: user.isVerified,
+                    forgotPasswordToken: user.forgotPasswordToken ?? undefined,
+                    forgotPasswordTokenExpiry: user.forgotPasswordTokenExpiry ?? undefined,
+                    verifyToken: user.verifyToken ?? undefined,
+                    verifyTokenExpiry: user.verifyTokenExpiry ?? undefined,
+                    attemptedProblems: includeAttemptedProblems? 
+                                       await Promise.all(
+                                           user.attemptedProblems.map(async (attemptedProblem) => {
+                                               return await mapAttemptedProblemToDBAttemtpedProblem(attemptedProblem);
+                                            })
+                                        ) :[]
+                };
+            })
+        )
+        return dbUsers;
+    }
+    catch (error: any) {
+        throw new Error("Error getting the resistered users: " + error.message);
+    }
 }
 
 /**
@@ -54,32 +59,37 @@ export async function getUsers(includeAttemptedProblems: boolean): Promise<DBUse
  */
 export async function getUser(email: string,
                               includeAttemptedProblems: boolean): Promise<DBUser | null> {
-    const user = await prisma.user.findUnique({
-        where: { email: email },
-        include: { attemptedProblems: includeAttemptedProblems }
-    });
-
-    if (!user) {
-        // Found no user with the given email
-        return null;
+    try {
+        const user = await prisma.user.findUnique({
+            where: { email: email },
+            include: { attemptedProblems: includeAttemptedProblems }
+        });
+    
+        if (!user) {
+            // Found no user with the given email
+            return null;
+        }
+    
+        const dbUser: DBUser = {
+            email: user.email,
+            name: user.name,
+            isVerified: user.isVerified,
+            forgotPasswordToken: user.forgotPasswordToken ?? undefined,
+            forgotPasswordTokenExpiry: user.forgotPasswordTokenExpiry ?? undefined,
+            verifyToken: user.verifyToken ?? undefined,
+            verifyTokenExpiry: user.verifyTokenExpiry ?? undefined,
+            attemptedProblems: includeAttemptedProblems? 
+                               await Promise.all(
+                                   user.attemptedProblems.map(async (attemptedProblem) => {
+                                       return await mapAttemptedProblemToDBAttemtpedProblem(attemptedProblem);
+                                   })
+                               ) :[]
+        };
+        return dbUser;
     }
-
-    const dbUser: DBUser = {
-        email: user.email,
-        name: user.name,
-        isVerified: user.isVerified,
-        forgotPasswordToken: user.forgotPasswordToken ?? undefined,
-        forgotPasswordTokenExpiry: user.forgotPasswordTokenExpiry ?? undefined,
-        verifyToken: user.verifyToken ?? undefined,
-        verifyTokenExpiry: user.verifyTokenExpiry ?? undefined,
-        attemptedProblems: includeAttemptedProblems? 
-                           await Promise.all(
-                               user.attemptedProblems.map(async (attemptedProblem) => {
-                                   return await mapAttemptedProblemToDBAttemtpedProblem(attemptedProblem);
-                               })
-                           ) :[]
-    };
-    return dbUser;
+    catch (error: any) {
+        throw new Error("Error getting user by email (" + email + "): " + error.message);
+    }
 }
 
 /**
@@ -89,22 +99,27 @@ export async function getUser(email: string,
  * @returns the existing problems.
  */
 export async function getProblems(): Promise<DBProblem[]> {
-    const problems = await prisma.problem.findMany({
-        orderBy: { order: 'asc' }
-    });
-
-    const dbProblems: DBProblem[] = problems.map((problem) => {
-        return {
-            problem_id: problem.problem_id,
-            title: problem.title,
-            category: problem.category,
-            difficulty: problem.difficulty,
-            order: problem.order,
-            videoId: problem.videoId,
-            link: problem.link ?? undefined,
-        };
-    });
-    return dbProblems;
+    try {
+        const problems = await prisma.problem.findMany({
+            orderBy: { order: 'asc' }
+        });
+    
+        const dbProblems: DBProblem[] = problems.map((problem) => {
+            return {
+                problem_id: problem.problem_id,
+                title: problem.title,
+                category: problem.category,
+                difficulty: problem.difficulty,
+                order: problem.order,
+                videoId: problem.videoId,
+                link: problem.link ?? undefined,
+            };
+        });
+        return dbProblems;
+    }
+    catch (error: any) {
+        throw new Error("Error getting the exiting problems: " + error.message);
+    }
 }
 
 /**
@@ -116,24 +131,29 @@ export async function getProblems(): Promise<DBProblem[]> {
  *          {@code null} if no problem has the given id
  */
 export async function getProblem(problem_id: string): Promise<DBProblem | null> {
-    const problem = await prisma.problem.findUnique({
-        where: { problem_id: problem_id }
-    });
-
-    if (!problem) {
-        return null;
+    try {
+        const problem = await prisma.problem.findUnique({
+            where: { problem_id: problem_id }
+        });
+    
+        if (!problem) {
+            return null;
+        }
+    
+        const dbProblem: DBProblem = {
+            problem_id: problem.problem_id,
+            title: problem.title,
+            category: problem.category,
+            difficulty: problem.difficulty,
+            order: problem.order,
+            videoId: problem.videoId, // YouTube video URL
+            link: problem.link ?? undefined       
+        };
+        return dbProblem;
     }
-
-    const dbProblem: DBProblem = {
-        problem_id: problem.problem_id,
-        title: problem.title,
-        category: problem.category,
-        difficulty: problem.difficulty,
-        order: problem.order,
-        videoId: problem.videoId, // YouTube video URL
-        link: problem.link ?? undefined       
-    };
-    return dbProblem;
+    catch (error: any) {
+        throw new Error("Error getting the problems with id=" + problem_id + ": " + error.message);
+    }
 }
 
 /**
@@ -145,24 +165,29 @@ export async function getProblem(problem_id: string): Promise<DBProblem | null> 
  *          {@code null} if no problem has the given order
  */
 export async function getProblemByOrder(order: number): Promise<DBProblem | null> {
-    const problem = await prisma.problem.findUnique({
-        where: { order: order }
-    });
-
-    if (!problem) {
-        return null;
+    try {
+        const problem = await prisma.problem.findUnique({
+            where: { order: order }
+        });
+    
+        if (!problem) {
+            return null;
+        }
+    
+        const dbProblem: DBProblem = {
+            problem_id: problem.problem_id,
+            title: problem.title,
+            category: problem.category,
+            difficulty: problem.difficulty,
+            order: problem.order,
+            videoId: problem.videoId, // YouTube video URL
+            link: problem.link ?? undefined       
+        };
+        return dbProblem;
     }
-
-    const dbProblem: DBProblem = {
-        problem_id: problem.problem_id,
-        title: problem.title,
-        category: problem.category,
-        difficulty: problem.difficulty,
-        order: problem.order,
-        videoId: problem.videoId, // YouTube video URL
-        link: problem.link ?? undefined       
-    };
-    return dbProblem;
+    catch (error: any) {
+        throw new Error("Error getting the problems with order=" + order + ": " + error.message);
+    }
 }
 
 /**
@@ -175,22 +200,27 @@ export async function getProblemByOrder(order: number): Promise<DBProblem | null
  */
 export async function getAttemptedProblems(email: string):
              Promise<DBAttemptedProblem[] | null> {
-    const user = await prisma.user.findUnique({
-        where: { email: email },
-        include: { attemptedProblems: true }
-    });
-
-    if (!user) {
-        // Found no user with the given email
-        return null;
+    try {
+        const user = await prisma.user.findUnique({
+            where: { email: email },
+            include: { attemptedProblems: true }
+        });
+    
+        if (!user) {
+            // Found no user with the given email
+            return null;
+        }
+    
+        const dbAttempedProblems: DBAttemptedProblem[] = await Promise.all(
+            user.attemptedProblems.map(async (attemptedProblem) => {
+                return await mapAttemptedProblemToDBAttemtpedProblem(attemptedProblem);
+            })
+        );
+        return dbAttempedProblems;
     }
-
-    const dbAttempedProblems: DBAttemptedProblem[] = await Promise.all(
-        user.attemptedProblems.map(async (attemptedProblem) => {
-            return await mapAttemptedProblemToDBAttemtpedProblem(attemptedProblem);
-        })
-    );
-    return dbAttempedProblems;
+    catch (error: any) {
+        throw new Error("Error getting the attempted problems for user '" + email + "': " + error.message);
+    }
 }
 
 // -------------------------------------------------------- //
@@ -343,31 +373,31 @@ export async function createAttemptedProblem(problem_id: string,
                                              code: string,
                                              correct: boolean):
              Promise<[DBAttemptedProblem | null, string | null]> {
-    // Make sure that the problem exists
-    const problem = await prisma.problem.findUnique({
-        where: { problem_id: problem_id }
-    });
-    if (!problem) {
-        return [null, "Unknown problem id:" + problem_id];
-    }
-    
-    // Make sure that the user exists
-    const user = await prisma.user.findUnique({
-        where: { email: email },
-        include: { attemptedProblems: true }
-    });
-    if (!user) {
-        return [null, "Unknown user email:" + email];
-    }
-
-    // Make sure that the user has not previously attempted the problem
-    for (const attmptedProblem of user.attemptedProblems) {
-        if (attmptedProblem.pid === problem.id) {
-            return [null, "User '" + email + "' has already attempted the problem"];
-        }
-    }
-
     try {
+        // Make sure that the problem exists
+        const problem = await prisma.problem.findUnique({
+            where: { problem_id: problem_id }
+        });
+        if (!problem) {
+            return [null, "Unknown problem id:" + problem_id];
+        }
+        
+        // Make sure that the user exists
+        const user = await prisma.user.findUnique({
+            where: { email: email },
+            include: { attemptedProblems: true }
+        });
+        if (!user) {
+            return [null, "Unknown user email:" + email];
+        }
+    
+        // Make sure that the user has not previously attempted the problem
+        for (const attmptedProblem of user.attemptedProblems) {
+            if (attmptedProblem.pid === problem.id) {
+                return [null, "User '" + email + "' has already attempted the problem"];
+            }
+        }
+    
         const attemptedProblem = await prisma.attemptedProblem.create({
             data: {
                 pid: problem.id,
@@ -409,11 +439,14 @@ export async function createAttemptedProblem(problem_id: string,
  * @param isVerified {@code true} if the user is verified or
  *                   {@code false} otherwise (optional)
  * @param forgotPasswordToken The token that is used to reset the
- *                            password if the user forgot their password
- * @param forgotPasswordTokenExpiry The expiration date for the forgot passowrd
- *                                  token
- * @param verifyToken The token to verify the user
- * @param verifyTokenExpiry The expiration date for the verify user token
+ *                            password if the user forgot their password or
+ *                            {@code null} to clear the existing value
+ * @param forgotPasswordTokenExpiry The expiration date for the forgot passowrd token
+ *                                  or {@code null} to clear the existing value
+ * @param verifyToken The token to verify the user or
+ *                    {@code null} to clear the existing value
+ * @param verifyTokenExpiry The expiration date for the verify user token or
+ *                          {@code null} to clear the existing value
  * 
  * @returns an array where the first element is {@code true}
  *          in case the operation was successful or
@@ -427,12 +460,13 @@ export async function updateUser(currEmail: string,
                                  newName?: string,
                                  newPassword?: string,
                                  isVerified?: boolean,
-                                 forgotPasswordToken?: string,
-                                 forgotPasswordTokenExpiry?: Date,
-                                 verifyToken?: string,
-                                 verifyTokenExpiry?: Date):
+                                 forgotPasswordToken?: string | null,
+                                 forgotPasswordTokenExpiry?: Date | null,
+                                 verifyToken?: string | null,
+                                 verifyTokenExpiry?: Date | null):
                       Promise<[boolean, string | null]> {
-    if (!newName && !newEmail &&  !newPassword && isVerified === undefined) {
+    if (!newName && !newEmail &&  !newPassword && isVerified === undefined &&
+        !forgotPasswordToken && !forgotPasswordTokenExpiry && !verifyToken && !verifyTokenExpiry) {
         return [false, "You must provide a field to update"];
     }
 
@@ -575,6 +609,88 @@ export async function updateAttemptedProblem(id: number,
     }
 }
 
+/**
+ * Searches for a user with the given token and if there is a match
+ * and the token has not expired, it marks the user (with that token)
+ * as verified and clears the user's tokens.
+ * 
+ * @param token The token to validate
+ * 
+ * @returns an array where the first element is {@code true}
+ *          in case the operation was successful or
+ *          {@code false} otherwise and the second element
+ *          is {@code null} in case the operation was successful
+ *          and a string with error message in case it was
+ *          unsuccessful.
+ */
+export async function verifyUser(token: string):
+       Promise<[boolean, string | null]> {
+    try {
+        const userEmail = await searchForValidToken(token, true);
+        if (!userEmail) {
+            return [false, 'Invalid or expired token'];
+        }
+
+        await updateUser(userEmail, // currEmail
+                         undefined, // newEmail
+                         undefined, // newName
+                         undefined, // newPassword
+                         true,      // isVerified
+                         null,      // forgotPasswordToken
+                         null,      // forgotPasswordTokenExpiry
+                         null,      // verifyToken
+                         null       // verifyTokenExpiry
+        );
+
+        return [true, null];
+    }
+    catch (error: any) {
+        return [false, error.message];
+    }
+}
+
+/**
+ * Searches for a user with the given token and if there is a match
+ * and the token has not expired, it sets the user password to the
+ * new value and clears the user's reset passowrd tokens.
+ * 
+ * @param token The token to validate
+ * @param newPassword The new password
+ * 
+ * @returns an array where the first element is {@code true}
+ *          in case the operation was successful or
+ *          {@code false} otherwise and the second element
+ *          is {@code null} in case the operation was successful
+ *          and a string with error message in case it was
+ *          unsuccessful.
+ */
+export async function resetPassword(token: string,
+                                    newPassword: string):
+       Promise<[boolean, string | null]> {
+    try {
+        const userEmail = await searchForValidToken(token, false);
+        if (!userEmail) {
+            return [false, 'Invalid or expired token'];
+        }
+
+        await updateUser(userEmail,   // currEmail
+                         undefined,   // newEmail
+                         undefined,   // newName
+                         newPassword, // newPassword
+                         undefined,   // isVerified
+                         null,        // forgotPasswordToken
+                         null,        // forgotPasswordTokenExpiry
+                         null,        // verifyToken
+                         null         // verifyTokenExpiry
+        );
+
+        return [true, null];
+    }
+    catch (error: any) {
+        return [false, error.message];
+    }
+}
+
 // -------------------------------------------------------- //
 //      D  E  L  E  T  E     F  U  N  C  T  I  O  N  S      //
 // -------------------------------------------------------- //
@@ -592,23 +708,23 @@ export async function updateAttemptedProblem(id: number,
  */
 export async function deleteUser(email: string):
              Promise<[boolean, string | null]> {
-    const user = await prisma.user.findUnique({
-        where: { email: email },
-    });
-    
-    if (!user) {
-        return [false, "Found no user with the given email: " + email];
-    }
-        
-    const deleteAttemptedProblems = prisma.attemptedProblem.deleteMany({
-        where: { uid: user.id }
-    });
-                  
-    const deleteUser = prisma.user.delete({
-        where: { id: user.id },
-    });
-    
     try {
+        const user = await prisma.user.findUnique({
+            where: { email: email },
+        });
+        
+        if (!user) {
+            return [false, "Found no user with the given email: " + email];
+        }
+        
+        const deleteAttemptedProblems = prisma.attemptedProblem.deleteMany({
+            where: { uid: user.id }
+        });
+                  
+        const deleteUser = prisma.user.delete({
+            where: { id: user.id },
+        });
+        
         await prisma.$transaction([deleteAttemptedProblems, deleteUser]);
         return [true, null];
     }
@@ -631,23 +747,23 @@ export async function deleteUser(email: string):
  */
 export async function deleteProblem(problem_id: string):
              Promise<[boolean, string | null]> {
-    const problem = await prisma.problem.findUnique({
-        where: { problem_id: problem_id },
-    });
-    
-    if (! problem) {
-        return [false, "Found no problem with the given id: " + problem_id];
-    }
-        
-    const deleteAttemptedProblems = prisma.attemptedProblem.deleteMany({
-        where: { pid: problem.id }
-    });
-                  
-    const deleteProblem = prisma.problem.delete({
-        where: { id: problem.id },
-    });
-    
     try {
+        const problem = await prisma.problem.findUnique({
+            where: { problem_id: problem_id },
+        });
+        
+        if (! problem) {
+            return [false, "Found no problem with the given id: " + problem_id];
+        }
+        
+        const deleteAttemptedProblems = prisma.attemptedProblem.deleteMany({
+            where: { pid: problem.id }
+        });
+        
+        const deleteProblem = prisma.problem.delete({
+            where: { id: problem.id },
+        });
+         
         await prisma.$transaction([deleteAttemptedProblems, deleteProblem]);
         return [true, null];
     }
@@ -729,35 +845,88 @@ async function mapAttemptedProblemToDBAttemtpedProblem(attemptedProblem: Attempt
  *          {@code null} if the credentials are invalid
  */
 export async function authenticateUser(email: string, password: string): Promise<DBUser | null> {
-    // Look up the user with the provided email as username
-    const user = await prisma.user.findFirst({
-        where: { email: email },
-        include: { attemptedProblems: true }
-    });
-
-    // Check the encrypted password if the user exists
-    if (user) {
-        if (await bcrypt.compare(password, user.password)) {
-            const dbUser: DBUser = {
-                email: user.email,
-                name: user.name,
-                isVerified: user.isVerified,
-                forgotPasswordToken: user.forgotPasswordToken ?? undefined,
-                forgotPasswordTokenExpiry: user.forgotPasswordTokenExpiry ?? undefined,
-                verifyToken: user.verifyToken ?? undefined,
-                verifyTokenExpiry: user.verifyTokenExpiry ?? undefined,
-
-                attemptedProblems: await Promise.all(
-                                       user.attemptedProblems.map(async (attemptedProblem) => {
-                                           return await mapAttemptedProblemToDBAttemtpedProblem(attemptedProblem);
-                                       })
-                                   )
-            };
-            return dbUser;
+    try {
+        // Look up the user with the provided email as username
+        const user = await prisma.user.findFirst({
+            where: { email: email },
+            include: { attemptedProblems: true }
+        });
+    
+        // Check the encrypted password if the user exists
+        if (user) {
+            if (await bcrypt.compare(password, user.password)) {
+                const dbUser: DBUser = {
+                    email: user.email,
+                    name: user.name,
+                    isVerified: user.isVerified,
+                    forgotPasswordToken: user.forgotPasswordToken ?? undefined,
+                    forgotPasswordTokenExpiry: user.forgotPasswordTokenExpiry ?? undefined,
+                    verifyToken: user.verifyToken ?? undefined,
+                    verifyTokenExpiry: user.verifyTokenExpiry ?? undefined,
+    
+                    attemptedProblems: await Promise.all(
+                                           user.attemptedProblems.map(async (attemptedProblem) => {
+                                               return await mapAttemptedProblemToDBAttemtpedProblem(attemptedProblem);
+                                           })
+                                       )
+                };
+                return dbUser;
+            }
         }
+        return null;
     }
-    return null;
-};
+    catch (error: any) {
+        throw new Error("Error authenticating users '" + email + "': " + error.message);
+    }
+}
+
+/**
+ * Looks up the given token in the users in the database and returns
+ * {@code true} if the token is found and has not expired.
+ * 
+ * @param token The token to search for
+ * @param verifyUser {@code true} if this is a verification token or
+ *                   {@code false} if this is a forgot password token
+ * 
+ * @return the email of the user with the valid token or
+ *         {@code null} if there is no user with the specified token as valid token
+ */
+async function searchForValidToken(token: string,
+                                   verifyUser: boolean):
+      Promise<string | null> {
+    try {
+        var user;
+        if (verifyUser) { // Verify user
+            user = await prisma.user.findFirst({
+                where: {
+                    verifyToken: token,
+                    verifyTokenExpiry: {
+                        gte: new Date() 
+                    }
+                }
+            });
+        }
+        else { // Forgot password
+            user = await prisma.user.findFirst({
+                where: {
+                    forgotPasswordToken: token,
+                    forgotPasswordTokenExpiry: {
+                        gte: new Date() 
+                    }
+                }
+            });
+        }
+        
+        if (!user) {
+            return null;
+        }
+        return user.email;
+    }
+    catch (error: any) {
+        throw new Error("Error searching for token=" + token + ": " + error.message);
+    }    
+}
+
 
 
 

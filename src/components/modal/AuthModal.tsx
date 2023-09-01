@@ -53,7 +53,8 @@ const AuthModal:React.FC<AuthModalProps> = ({authModalState, updateAuthModalStat
               </div>
               {/* Show the proper modal based on the authModal type */}
               { authModalState.type === 'login' ? <Login showModal={showModal} /> :
-                                                  authModalState.type === 'signup' ? <Signup showModal={showModal} /> : <ResetPassword/> }
+                                                  authModalState.type === 'signup' ?
+                                                  <Signup showModal={showModal} /> : <ResetPassword showModal={showModal}/> }
             </div>
           </div>
         </div>

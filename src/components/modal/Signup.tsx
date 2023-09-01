@@ -4,7 +4,9 @@ import { useState } from 'react';
 import { ZodFormattedError } from 'zod';
 // Custom imports
 import { createUserInDB } from "@/util/ServerActions";
-import { ErrorMessage, showSuccess } from "@/util/UIUtil";
+import { ErrorMessage, showError, showSuccess } from "@/util/UIUtil";
+import { sendEmail } from "@/util/EmailUtil";
+import { EmailType } from "@/types";
 
 
 type SignupProps = {
@@ -20,17 +22,26 @@ const Signup:React.FC<SignupProps> = ({showModal}) => {
                                                                             > | null>(null);
     /** Keeps track of any DB user creation errors */
     const [dbResult, setDBResult] = useState<string | null>(null);
+    /**
+     * {@code true} if we are waiting for a server response or
+     * {@code false} otherwise
+     */
+    const [waiting, setWaiting] = useState<boolean>(false);
+
 
     /**
      * Registers the user to our database.
      */
     async function submitForm(data: FormData) {
+        // Do not accept another login request till we hear from the server
+        setWaiting(true);
+
         const error = await createUserInDB(data);
         if (error && typeof error !== "string") {
             // Validation error
             setValidationError(error);
             setDBResult(null);
-          }
+        }
         else { 
             // Wipe out any previous validation error
             setValidationError(null);
@@ -38,10 +49,20 @@ const Signup:React.FC<SignupProps> = ({showModal}) => {
                 setDBResult(error);
             }
             else { // No DB error
-                showSuccess('User registered successfully');
-                showModal('login');
+                // Send the user a verificatiom email(i.e., with token to verify the account)
+                const { email } = Object.fromEntries(data);
+                try {
+                    await sendEmail(email as string, EmailType.ACCOUNT_VERIFICATION);
+                    showSuccess('User registered successfully. Please, check your email to verify your account.');
+                    showModal('login');
+                }
+                catch (error: any) {
+                    showError('Sending verification email failed: ' + error.message);
+                }
             }
         }
+
+        setWaiting(false);
     }
 
     return (
@@ -103,7 +124,7 @@ const Signup:React.FC<SignupProps> = ({showModal}) => {
                 className="w-full text-white focus:ring-blue-300 font-medium rounded-lg
                            text-sm px-5 py-2.5 text-center bg-cardinal-red hover:bg-cardinal-red-s"
         >
-          Sign up
+          {waiting ? 'Signing up...' : 'Sign up'}
         </button>
         <div className="text-sm font-medium text-gray-300">
           Already have an account?&nbsp;
