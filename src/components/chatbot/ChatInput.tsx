@@ -1,15 +1,20 @@
 "use client";
 // Library imports
 import TextareaAutosize from 'react-textarea-autosize';
-import { useContext, useRef, useState } from 'react';
+import Image from 'next/image';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { HTMLAttributes } from 'react';
 import { CornerDownLeft, Loader2 } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { nanoid } from 'nanoid';
+import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
+import 'core-js/stable'; // npm install core-js@latest
+import 'regenerator-runtime/runtime'; // npm install regenerator-runtime@latest
 // Custom imports
 import { MessagesContext } from '@/context/messages';
 import { cn } from "@/util/utils";
 import { showError } from '@/util/UIUtil';
+import useHasMounted from "@/app/hooks/useHasMounted";
 import { ChatMessage, MessageContextType } from "@/types";
 
 interface ChatInputProps extends HTMLAttributes<HTMLDivElement> {
@@ -19,6 +24,14 @@ const ChatInput:React.FC<ChatInputProps> = ({ className, ...props }) => {
     const [input, setInput] = useState<string>('');
     const messageContext: MessageContextType = useContext(MessagesContext);
     const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+    // Speech recognition
+    const {
+        transcript,
+        listening,
+        resetTranscript,
+        browserSupportsSpeechRecognition
+    } = useSpeechRecognition();
 
     const {mutate: sendMessage, isLoading} = useMutation({
         mutationFn: async (message: ChatMessage) => {
@@ -80,8 +93,48 @@ const ChatInput:React.FC<ChatInputProps> = ({ className, ...props }) => {
         }
     });
 
+    useEffect(() => {
+        if (!listening) {
+            const updatedTranscript = input.length > 0 ?
+                                      input + ' ' + transcript : transcript;
+            setInput(updatedTranscript);
+        }
+    }, [listening]);
+
     return (
         <div {...props} className={cn('border-t border-zinc-300', className)}>
+          {/*   S P E E C H    R E C O G N I T I O N   */}
+          <div className="items-center mt-2">
+            <div className="flex items-center">
+              <Image src="/images/microphone.png"
+                     alt="Microphone"
+                     height={25}
+                     width={25}
+              />
+              <div className={`${listening ? 'text-green-600' : 'text-red-600'}`}>{listening? 'On' : 'Off'}</div>
+              <div className="mx-1 cursor-pointer" onClick={() => SpeechRecognition.startListening()}>
+                <Image src="/images/start.png"
+                       alt="Start Speech Recignition"
+                       height={25}
+                       width={25}
+                />
+              </div>
+              <div className="mx-1 rounded-lg cursor-pointer" onClick={() => SpeechRecognition.stopListening()}>
+                <Image src="/images/stop.png"
+                       alt="Stop Speech Recignition"
+                       height={25}
+                       width={25}
+                />
+              </div>
+              <div className="mx-1 rounded-lg cursor-pointer" onClick={() => setInput('')}>
+                <Image src="/images/delete.png"
+                       alt="Stop Speech Recignition"
+                       height={25}
+                       width={25}
+                />
+              </div>
+            </div>
+          </div>
           <div className="relative mt-4 flex-1 overflow-hidden rounded-lg border-none outline-none">
             <TextareaAutosize className="peer disabled:opacity-50 pr-14 resize-none block w-full border-0 bg-zinc-100 py-1.5 text-gray-900 focus:ring-0 text-sm sm:leading-6"
                               ref={textareaRef}

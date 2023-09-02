@@ -77,7 +77,7 @@ const VerifyUser:React.FC<VerifyUserProps> = ({params}) => {
           <div className="flex justify-center items-center h-screen relative">
             { success === null &&
               <form className="space-y-6 px-6 pb-4"
-                action={submitForm}
+                    action={submitForm}
               >
                 <h3 className="pt-6 text-xl font-medium text-white">Reset Password</h3>
                 <div  // -----   P A S S W O R D   T E X T   F I E L D   ----- //
