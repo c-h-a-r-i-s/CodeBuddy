@@ -226,25 +226,30 @@ const Playground:React.FC<PlaygroundProps> = ({user,
             }
         }
 
-        const response = await fetch(SET_ATTEMPTED_PROBLEM_URL, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                problem_id: localProblem.problem_id,
-                email: user!.email,
-                code: userCode,
-                correct: correct 
-            }),
-        });
-
-        if (response.ok) {
-             // Set the checkmart immediately to reflect the DB value
-             // without having to refresh the page
-             setCorrect(correct);
+        try {
+            const response = await fetch(SET_ATTEMPTED_PROBLEM_URL, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    problem_id: localProblem.problem_id,
+                    email: user!.email,
+                    code: userCode,
+                    correct: correct 
+                }),
+            });
+    
+            if (response.ok) {
+                 // Set the checkmart immediately to reflect the DB value
+                 // without having to refresh the page
+                 setCorrect(correct);
+            }
+            else {
+                const errorMessage = await response.text();
+                console.log(errorMessage);
+            }
         }
-        else {
-            const errorMessage = await response.text();
-            console.log(errorMessage);
+        catch (error) {
+            console.log("Internal error", error);
         }
     };
 

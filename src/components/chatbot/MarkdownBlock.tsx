@@ -27,6 +27,9 @@ const MarkdownBlock:React.FC<MarkdownBlockPros> = ({ content }) => {
     }
 
     return (
+        // If you update the "react-markdown": "^8.0.7" (see package.json) to a
+        // later version it will break the existing functionality (e.g., 
+        // linkTarget is removed and many more changes)
         <ReactMarkdown className='post-markdown'
                        linkTarget='_blank'
             rehypePlugins={[]} // Add rehype plugins (e.g., rehypeRaw) to the array as needed

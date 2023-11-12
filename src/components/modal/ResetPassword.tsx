@@ -23,7 +23,7 @@ const ResetPassword:React.FC<ResetPasswordProps> = ({showModal}) => {
      */
     async function submitForm(data: FormData) {
         const { email } = Object.fromEntries(data);
-        if (email.length < 3) {
+        if ((email as string).length < 3) {
             setValidationError('Invalid email address');
         }
         else {

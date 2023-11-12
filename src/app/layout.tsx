@@ -1,5 +1,5 @@
 // Library imports
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 // Custom imports
 import AuthProvider from "@/components/AuthProvider";
@@ -8,10 +8,17 @@ import "@/styles/globals.css";
 const inter = Inter({ subsets: ['latin'] })
 
 // Metadata
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1  
+}
 export const metadata: Metadata = {
   title: 'CodeBuddy',
   description: 'Web application that helps students to code',
-  viewport: 'width=device-width, initial-scale=1'
+  // Note: The following caused am error:
+  // "Unsupported metadata viewport is configured in metadata export."
+  // To resolve it, we added the "export const viewport: Viewport ={}" above
+  //viewport: 'width=device-width, initial-scale=1'
 }
 
 // RootLayout

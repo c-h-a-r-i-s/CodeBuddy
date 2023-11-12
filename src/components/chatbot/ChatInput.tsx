@@ -33,7 +33,7 @@ const ChatInput:React.FC<ChatInputProps> = ({ className, ...props }) => {
         browserSupportsSpeechRecognition
     } = useSpeechRecognition();
 
-    const {mutate: sendMessage, isLoading} = useMutation({
+    const {mutate: sendMessage, isPending} = useMutation({
         mutationFn: async (message: ChatMessage) => {
             const response = await fetch('/api/message', {
                 method: 'POST',
@@ -158,7 +158,7 @@ const ChatInput:React.FC<ChatInputProps> = ({ className, ...props }) => {
                               }}
                               value={input}
                               autoFocus
-                              disabled={isLoading}
+                              disabled={isPending}
                               onChange={(e) => setInput(e.target.value)}
                               placeholder='Type your question...'
             />
@@ -166,7 +166,7 @@ const ChatInput:React.FC<ChatInputProps> = ({ className, ...props }) => {
             {/* Loading indicator */}
             <div className="absolute inset-y-0 right-0 flex py-1.5 pr-1.5">
               <kbd className="inline-flex items-center rounded border bg-white border-gray-200 px-1 font-sans text-xs text-gray-400">
-                {isLoading ? (
+                {isPending ? (
                   <Loader2 className="w-3 h-3 animate-spin" />
                 ) : (
                   <CornerDownLeft className="w-3 h-3" />
