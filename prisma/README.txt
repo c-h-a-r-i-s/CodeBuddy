@@ -74,6 +74,17 @@ It will also create the DB tables:
 Initializing the DB tables:
 
 1) For SQLITE, do the following:
+1st Way: Preferred
+- Open package.json and add somewhere in this file (e.g. under "scripts:{}"):
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
+- Run
+  $ npx prisma db seed
+  This invokes prisma/seed.js which in turn executes the commands in
+  prisma/seed.sql that add entries to the database
+  
+2nd Way: Manually
 - Open a terminal and navigate to the prisma directory (i.e., 'cd prisma')
 - Run
 $ sqlite3 dev.db
