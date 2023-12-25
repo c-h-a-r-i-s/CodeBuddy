@@ -11,7 +11,7 @@ CodeBuddy is an online platform that provides a collection of programming challe
 <br><br>
 
 <p align="center">
-    <a href=https://www.youtube.com/watch?v=29GRbcnm3e4>
+    <a href=https://www.youtube.com/watch?v=12L6-RDX1H4>
         <img align="center" alt="video icon" width="256px" src="https://github.com/c-h-a-r-i-s/resources/blob/main/images/codebuddy/youtube_thumbnail.png"/>
     </a>
     <br>
